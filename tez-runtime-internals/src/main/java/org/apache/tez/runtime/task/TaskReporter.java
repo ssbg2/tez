@@ -22,11 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -83,6 +79,9 @@ public class TaskReporter implements TaskReporterInterface {
 
   private final ListeningExecutorService heartbeatExecutor;
 
+  private ListeningExecutorService executorService ;
+
+
   @VisibleForTesting
   HeartbeatCallable currentCallable;
 
@@ -96,6 +95,7 @@ public class TaskReporter implements TaskReporterInterface {
     this.containerIdStr = containerIdStr;
     ExecutorService executor = Executors.newFixedThreadPool(1, new ThreadFactoryBuilder()
         .setDaemon(true).setNameFormat("TaskHeartbeatThread").build());
+    ListeningExecutorService executorService = MoreExecutors.listeningDecorator(executor);
     heartbeatExecutor = MoreExecutors.listeningDecorator(executor);
   }
 
@@ -108,7 +108,7 @@ public class TaskReporter implements TaskReporterInterface {
     currentCallable = new HeartbeatCallable(task, umbilical, pollInterval, sendCounterInterval,
         maxEventsToGet, requestCounter, containerIdStr);
     ListenableFuture<Boolean> future = heartbeatExecutor.submit(currentCallable);
-    Futures.addCallback(future, new HeartbeatCallback(errorReporter));
+    Futures.addCallback(future, new HeartbeatCallback(errorReporter),executorService);
   }
 
   /**

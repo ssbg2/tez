@@ -42,6 +42,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -2245,9 +2246,11 @@ public class VertexImpl implements org.apache.tez.dag.app.dag.Vertex, EventHandl
             return null;
           }
         };
+        ListeningExecutorService executor = vertex.appContext.getExecService();
+
         ListenableFuture<Void> commitFuture = 
             vertex.getAppContext().getExecService().submit(commitCallableEvent);
-        Futures.addCallback(commitFuture, commitCallableEvent.getCallback());
+        Futures.addCallback(commitFuture, commitCallableEvent.getCallback(),executor);
         vertex.commitFutures.put(outputName, commitFuture);
       }
     }

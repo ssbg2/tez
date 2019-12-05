@@ -40,6 +40,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.tez.Utils;
@@ -211,6 +212,8 @@ public class DAGImpl implements org.apache.tez.dag.app.dag.DAG,
   private final DAGPlan jobPlan;
 
   private final AtomicBoolean internalErrorTriggered = new AtomicBoolean(false);
+
+  private final ListeningExecutorService executor  ;
 
   Map<String, LocalResource> localResources;
   
@@ -522,6 +525,7 @@ public class DAGImpl implements org.apache.tez.dag.app.dag.DAG,
     this.userName = appUserName;
     this.clock = clock;
     this.appContext = appContext;
+    this.executor = appContext.getExecService();
 
     this.taskCommunicatorManagerInterface = taskCommunicatorManagerInterface;
     this.taskHeartbeatHandler = thh;
@@ -1130,7 +1134,7 @@ public class DAGImpl implements org.apache.tez.dag.app.dag.DAG,
       }
       for (Map.Entry<OutputKey,CallableEvent> entry : commitEvents.entrySet()) {
         ListenableFuture<Void> commitFuture = appContext.getExecService().submit(entry.getValue());
-        Futures.addCallback(commitFuture, entry.getValue().getCallback());
+        Futures.addCallback(commitFuture, entry.getValue().getCallback(),executor);
         commitFutures.put(entry.getKey(), commitFuture);
       }
     }
@@ -2144,7 +2148,7 @@ public class DAGImpl implements org.apache.tez.dag.app.dag.DAG,
                 };
               };
               ListenableFuture<Void> groupCommitFuture = appContext.getExecService().submit(groupCommitCallableEvent);
-              Futures.addCallback(groupCommitFuture, groupCommitCallableEvent.getCallback());
+              Futures.addCallback(groupCommitFuture, groupCommitCallableEvent.getCallback(),executor);
               commitFutures.put(outputKey, groupCommitFuture);
             }
           }

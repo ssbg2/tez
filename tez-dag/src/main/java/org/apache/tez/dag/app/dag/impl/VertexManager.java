@@ -487,7 +487,7 @@ public class VertexManager {
       VertexManagerEvent e = eventQueue.poll();
       if (e != null) {
         ListenableFuture<Void> future = execService.submit(e);
-        Futures.addCallback(future, e.getCallback());
+        Futures.addCallback(future, e.getCallback(),execService);
       } else {
         // This may happen. Lets say Callback succeeded on threadA. It set eventInFlight to false 
         // and called tryScheduleNextEvent() and found queue not empty but got paused before it 

@@ -2153,7 +2153,7 @@ public class VertexImpl implements org.apache.tez.dag.app.dag.Vertex, EventHandl
         };
         ListenableFuture<Void> commitFuture = 
             vertex.getAppContext().getExecService().submit(commitCallableEvent);
-        Futures.addCallback(commitFuture, commitCallableEvent.getCallback());
+        Futures.addCallback(commitFuture, commitCallableEvent.getCallback(),vertex.getAppContext().getExecService());
         vertex.commitFutures.put(outputName, commitFuture);
       }
     }

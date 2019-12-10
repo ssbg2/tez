@@ -99,7 +99,8 @@ public class MockDAGAppMaster extends DAGAppMaster {
   boolean doSleep = true;
   int handlerConcurrency = 1;
   int numConcurrentContainers = 1;
-  
+
+
   ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
   AtomicLong heartbeatCpu = new AtomicLong(0);
   AtomicLong heartbeatTime = new AtomicLong(0);
@@ -323,7 +324,7 @@ public class MockDAGAppMaster extends DAGAppMaster {
             Worker worker = workers.remove();
             worker.setContainerData(cData);
             ListenableFuture<Void> future = executorService.submit(worker);
-            Futures.addCallback(future, worker.getCallback());            
+            Futures.addCallback(future, worker.getCallback(),executorService);
           } else {
             containers.remove(cData.cId);
           }
